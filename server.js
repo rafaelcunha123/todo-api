@@ -18,7 +18,7 @@ app.get('/todos', function(req, res) {
 	var query = req.query;
 	var where = {};
 
-	if (query.hasOwnProperty('completed') && query.completed === 'true'){
+	if (query.hasOwnProperty('completed') && query.completed === 'true') {
 		where.completed = true;
 	} else if (query.hasOwnProperty('completed') && query.completed === 'false') {
 		where.completed = false;
@@ -30,32 +30,14 @@ app.get('/todos', function(req, res) {
 		}
 	}
 
-	db.todo.findAll({where: where}).then (function (todos) {
+	db.todo.findAll({
+		where: where
+	}).then(function(todos) {
 		res.json(todos);
-	}, function(e){
+	}, function(e) {
 		res.status(500).send();
 	})
 
-
-	/*var filteredTodos = todos;
-
-	if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
-		filteredTodos = _.where(todos, {
-			completed: true
-		});
-	} else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
-		filteredTodos = _.where(todos, {
-			completed: false
-		});
-	};
-
-	if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
-		filteredTodos = _.filter(filteredTodos, function(todo) {
-			return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
-		});
-	}
-
-	res.json(filteredTodos);*/
 });
 
 app.get('/todos/:id', function(req, res) {
@@ -70,13 +52,6 @@ app.get('/todos/:id', function(req, res) {
 	}, function(e) {
 		res.status(500).send();
 	});
-
-	/*	var matchTodo = _.findWhere(todos, {
-			id: todoId
-		});
-		matchTodo ? res.json(matchTodo) : res.status(404).send();
-	});
-	*/
 });
 
 app.post('/todos', function(req, res) {
@@ -89,20 +64,28 @@ app.post('/todos', function(req, res) {
 	}).catch(function(e) {
 		res.status(400).send(e);
 	});
-
-	/*if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
-		return res.status(400).send();
-	};
-	body.description = body.description.trim();
-	body.id = todoNextId++;
-	todos.push(body);
-
-	res.json(body);*/
 });
 
 app.delete('/todos/:id', function(req, res) {
 	var todoId = parseInt(req.params.id, 10);
-	var matchTodo = _.findWhere(todos, {
+
+	db.todo.destroy({
+		where: {
+			id: todoId
+		}
+	}).then(function(rowsDeleted) {
+		if (rowsDeleted === 0) {
+			res.status(404).json({
+				error: 'No todo with id'
+			});
+		} else {
+			res.status(204).send();
+		}
+	}, function(e) {
+		res.status(500).send();
+	})
+
+	/*var matchTodo = _.findWhere(todos, {
 		id: todoId
 	});
 	if (!matchTodo) {
@@ -112,7 +95,7 @@ app.delete('/todos/:id', function(req, res) {
 	} else {
 		todos = _.without(todos, matchTodo);
 		res.status(200).json(matchTodo);
-	};
+	};*/
 });
 
 app.put('/todos/:id', function(req, res) {
